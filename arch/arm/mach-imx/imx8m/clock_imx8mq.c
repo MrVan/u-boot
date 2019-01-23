@@ -282,7 +282,7 @@ static u32 get_root_src_clk(enum clk_root_src root_src)
 	return 0;
 }
 
-static u32 get_root_clk(enum clk_root_index clock_id)
+u32 get_root_clk(enum clk_root_index clock_id)
 {
 	enum clk_root_src root_src;
 	u32 post_podf, pre_podf, root_src_clk;
