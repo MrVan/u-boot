@@ -7,6 +7,8 @@
 
 #ifdef CONFIG_IMX8MQ
 #include <asm/arch/clock_imx8mq.h>
+#elif defined(CONFIG_IMX8MM)
+#include <asm/arch/clock_imx8mm.h>
 #else
 #error "Error no clock.h"
 #endif
@@ -254,6 +256,7 @@ void init_clk_usdhc(u32 index);
 void init_uart_clk(u32 index);
 void init_wdog_clk(void);
 unsigned int mxc_get_clock(enum mxc_clock clk);
+u32 get_root_clk(enum clk_root_index clock_id);
 int clock_enable(enum clk_ccgr_index index, bool enable);
 int clock_root_enabled(enum clk_root_index clock_id);
 int clock_root_cfg(enum clk_root_index clock_id, enum root_pre_div pre_div,
