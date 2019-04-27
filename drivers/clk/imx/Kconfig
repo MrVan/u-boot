@@ -4,3 +4,10 @@ config CLK_IMX8
 	select CLK
 	help
 	  This enables support clock driver for i.MX8 platforms.
+
+config CLK_IMX8MM
+	bool "Clock support for i.MX8MM"
+	depends on IMX8MM
+	select CLK
+	help
+	  This enables support clock driver for i.MX8 platforms.
