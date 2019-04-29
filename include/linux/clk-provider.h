@@ -96,6 +96,7 @@ struct clk_divider {
 #define CLK_DIVIDER_ROUND_CLOSEST	BIT(4)
 #define CLK_DIVIDER_READ_ONLY		BIT(5)
 #define CLK_DIVIDER_MAX_AT_ZERO		BIT(6)
+extern const struct clk_ops clk_divider_ops;
 
 struct clk_fixed_factor {
 	struct clk	clk;
