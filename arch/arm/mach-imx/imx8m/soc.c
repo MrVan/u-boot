@@ -14,6 +14,10 @@
 #include <asm/mach-imx/boot_mode.h>
 #include <asm/mach-imx/syscounter.h>
 #include <asm/armv8/mmu.h>
+#include <dm/uclass.h>
+#include <dm/device.h>
+#include <dm/uclass-internal.h>
+#include <dm/device-internal.h>
 #include <errno.h>
 #include <fdt_support.h>
 #include <fsl_wdog.h>
@@ -284,3 +288,20 @@ void reset_cpu(ulong addr)
 		 */
 	}
 }
+
+/* TODO: Add i.MX8MQ */
+#ifdef CONFIG_IMX8MM
+int arch_cpu_init_dm(void)
+{
+	struct udevice *dev;
+
+	uclass_find_first_device(UCLASS_CLK, &dev);
+
+	for (; dev; uclass_find_next_device(&dev)) {
+		if (device_probe(dev))
+			continue;
+	}
+
+	return 0;
+}
+#endif
