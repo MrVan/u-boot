@@ -104,18 +104,15 @@ IMX_CONFIG = $(CONFIG_IMX_CONFIG:"%"=%)
 	$(Q)mkdir -p $(dir $@)
 	$(call if_changed_dep,cpp_cfg)
 
+DEPFILE_EXISTS := 0
 ifeq ($(CONFIG_ARCH_IMX8), y)
 CNTR_DEPFILES := $(srctree)/tools/imx_cntr_image.sh
 IMAGE_TYPE := imx8image
-SPL_DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o spl/u-boot-spl.cfgout $(srctree)/$(IMX_CONFIG); if [ -f spl/u-boot-spl.cfgout ]; then $(CNTR_DEPFILES) spl/u-boot-spl.cfgout; echo $$?; fi)
-DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o u-boot-dtb.cfgout $(srctree)/$(IMX_CONFIG); if [ -f u-boot-dtb.cfgout ]; then $(CNTR_DEPFILES) u-boot-dtb.cfgout; echo $$?; fi)
 else ifeq ($(CONFIG_ARCH_IMX8M), y)
 IMAGE_TYPE := imx8mimage
 IMX8M_DEPFILES := $(srctree)/tools/imx8m_image.sh
-DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o spl/u-boot-spl.cfgout $(srctree)/$(IMX_CONFIG);if [ -f spl/u-boot-spl.cfgout ]; then $(IMX8M_DEPFILES) spl/u-boot-spl.cfgout 0; echo $$?; fi)
 else
 IMAGE_TYPE := imximage
-DEPFILE_EXISTS := 0
 endif
 
 MKIMAGEFLAGS_u-boot.imx = -n $(filter-out $(PLUGIN).bin $< $(PHONY),$^) \
@@ -139,30 +136,33 @@ endif
 
 ifdef CONFIG_ARM64
 ifeq ($(CONFIG_ARCH_IMX8M), y)
-SPL:
+SPL: spl/u-boot-spl.bin spl/u-boot-spl.cfgout FORCE
 
 MKIMAGEFLAGS_flash.bin = -n spl/u-boot-spl.cfgout \
 		   -T $(IMAGE_TYPE) -e $(CONFIG_SPL_TEXT_BASE)
 flash.bin: MKIMAGEOUTPUT = flash.log
 
 spl/u-boot-spl-ddr.bin: spl/u-boot-spl.bin spl/u-boot-spl.cfgout FORCE
+	$(eval DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o spl/u-boot-spl.cfgout $(srctree)/$(IMX_CONFIG);if [ -f spl/u-boot-spl.cfgout ]; then $(IMX8M_DEPFILES) spl/u-boot-spl.cfgout 0; echo $$?; fi))
 ifeq ($(DEPFILE_EXISTS),0)
 	$(IMX8M_DEPFILES) spl/u-boot-spl.cfgout 1
 endif
 
 flash.bin: spl/u-boot-spl-ddr.bin u-boot.itb FORCE
+	$(eval DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o spl/u-boot-spl.cfgout $(srctree)/$(IMX_CONFIG);if [ -f spl/u-boot-spl.cfgout ]; then $(IMX8M_DEPFILES) spl/u-boot-spl.cfgout 0; echo $$?; fi))
 ifeq ($(DEPFILE_EXISTS),0)
 	$(call if_changed,mkimage)
 endif
 endif
 
 ifeq ($(CONFIG_ARCH_IMX8), y)
-SPL:
+SPL: spl/u-boot-spl.bin spl/u-boot-spl.cfgout FORCE
 
 MKIMAGEFLAGS_flash.bin = -n spl/u-boot-spl.cfgout -T $(IMAGE_TYPE) -e 0x100000
 flash.bin: MKIMAGEOUTPUT = flash.log
 
 flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
+	$(eval SPL_DEPFILE_EXISTS := $(shell $(CPP) $(cpp_flags) -x c -o spl/u-boot-spl.cfgout $(srctree)/$(IMX_CONFIG); if [ -f spl/u-boot-spl.cfgout ]; then $(CNTR_DEPFILES) spl/u-boot-spl.cfgout; echo $$?; fi))
 ifeq ($(SPL_DEPFILE_EXISTS),0)
 	$(call if_changed,mkimage)
 endif
