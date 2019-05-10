@@ -108,11 +108,6 @@ static void setup_iomux_uart(void)
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 }
 
-int board_mmc_get_env_dev(int devno)
-{
-	return devno;
-}
-
 #ifdef CONFIG_DM_PMIC_PFUZE100
 int power_init_board(void)
 {
