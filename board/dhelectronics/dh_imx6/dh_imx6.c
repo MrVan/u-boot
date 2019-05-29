@@ -20,7 +20,7 @@
 #include <asm/mach-imx/sata.h>
 #include <environment.h>
 #include <errno.h>
-#include <fsl_esdhc.h>
+#include <fsl_esdhc_imx.h>
 #include <fuse.h>
 #include <i2c.h>
 #include <miiphy.h>
@@ -186,7 +186,7 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 
-#ifdef CONFIG_FSL_ESDHC
+#ifdef CONFIG_FSL_ESDHC_IMX
 
 #define USDHC2_CD_GPIO	IMX_GPIO_NR(6, 16)
 #define USDHC3_CD_GPIO	IMX_GPIO_NR(7, 8)
