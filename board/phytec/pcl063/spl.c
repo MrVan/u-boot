@@ -13,7 +13,7 @@
 #include <asm/arch/mx6-ddr.h>
 #include <asm/arch/mx6-pins.h>
 #include <asm/arch/crm_regs.h>
-#include <fsl_esdhc.h>
+#include <fsl_esdhc_imx.h>
 
 /* Configuration for Micron MT41K256M16TW-107 IT:P, 32M x 16 x 8 -> 256MiB */
 
@@ -100,7 +100,7 @@ static void spl_dram_init(void)
 	mx6_dram_cfg(&ddr_sysinfo, &mx6_mmcd_calib, &mem_ddr);
 }
 
-#ifdef CONFIG_FSL_ESDHC
+#ifdef CONFIG_FSL_ESDHC_IMX
 
 #define USDHC_PAD_CTRL (PAD_CTL_PKE         | PAD_CTL_PUE       | \
 			PAD_CTL_PUS_22K_UP  | PAD_CTL_SPEED_LOW | \
@@ -137,7 +137,7 @@ int board_mmc_init(bd_t *bis)
 	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
 }
 
-#endif /* CONFIG_FSL_ESDHC */
+#endif /* CONFIG_FSL_ESDHC_IMX */
 
 void board_init_f(ulong dummy)
 {
