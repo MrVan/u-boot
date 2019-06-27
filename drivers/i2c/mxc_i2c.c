@@ -890,9 +890,22 @@ static int mxc_i2c_probe(struct udevice *bus)
 	i2c_bus->bus = bus;
 
 	/* Enable clk */
+#if CONFIG_IS_ENABLED(CLK)
+	ret = clk_get_by_index(bus, 0, &i2c_bus->per_clk);
+	if (ret) {
+		printf("Failed to get i2c clk\n");
+		return ret;
+	}
+	ret = clk_enable(&i2c_bus->per_clk);
+	if (ret) {
+		printf("Failed to enable i2c clk\n");
+		return ret;
+	}
+#else
 	ret = enable_i2c_clk(1, bus->seq);
 	if (ret < 0)
 		return ret;
+#endif
 
 	/*
 	 * See Documentation/devicetree/bindings/i2c/i2c-imx.txt
@@ -919,7 +932,11 @@ static int mxc_i2c_probe(struct udevice *bus)
 	ret = i2c_idle_bus(i2c_bus);
 	if (ret < 0) {
 		/* Disable clk */
+#if CONFIG_IS_ENABLED(CLK)
+		clk_disable(&i2c_bus->per_clk);
+#else
 		enable_i2c_clk(0, bus->seq);
+#endif
 		return ret;
 	}
 
