@@ -250,7 +250,10 @@ int clock_init(void)
 		INTPLL_DIV20_CLKE_MASK;
 	writel(val_cfg0, &ana_pll->sys_pll2_gnrl_ctl);
 
-	intpll_configure(ANATOP_SYSTEM_PLL3, MHZ(750));
+	if (is_imx8mn())
+		intpll_configure(ANATOP_SYSTEM_PLL3, MHZ(600));
+	else
+		intpll_configure(ANATOP_SYSTEM_PLL3, MHZ(750));
 	clock_set_target_val(NOC_CLK_ROOT,
 			     CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(2));
 
