@@ -9,6 +9,7 @@
 #include <dm.h>
 #include <asm/arch/clock.h>
 #include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/clock/imx8mn-clock.h>
 
 static ulong imx8mm_clk_get_rate(struct clk *clk)
 {
@@ -16,17 +17,24 @@ static ulong imx8mm_clk_get_rate(struct clk *clk)
 
 	switch (clk->id) {
 	case IMX8MM_CLK_USDHC1_ROOT:
+	case IMX8MN_CLK_USDHC1_ROOT:
 		return get_root_clk(USDHC1_CLK_ROOT);
+	case IMX8MN_CLK_USDHC2_ROOT:
 	case IMX8MM_CLK_USDHC2_ROOT:
 		return get_root_clk(USDHC2_CLK_ROOT);
+	case IMX8MN_CLK_USDHC3_ROOT:
 	case IMX8MM_CLK_USDHC3_ROOT:
 		return get_root_clk(USDHC3_CLK_ROOT);
+	case IMX8MN_CLK_I2C1:
 	case IMX8MM_CLK_I2C1:
 		return get_root_clk(I2C1_CLK_ROOT);
+	case IMX8MN_CLK_I2C2:
 	case IMX8MM_CLK_I2C2:
 		return get_root_clk(I2C2_CLK_ROOT);
+	case IMX8MN_CLK_I2C3:
 	case IMX8MM_CLK_I2C3:
 		return get_root_clk(I2C3_CLK_ROOT);
+	case IMX8MN_CLK_I2C4:
 	case IMX8MM_CLK_I2C4:
 		return get_root_clk(I2C4_CLK_ROOT);
 	}
@@ -37,18 +45,25 @@ static ulong imx8mm_clk_get_rate(struct clk *clk)
 static int __imx8mm_clk_enable(struct clk *clk, bool enable)
 {
 	switch (clk->id) {
+	case IMX8MN_CLK_USDHC1_ROOT:
 	case IMX8MM_CLK_USDHC1_ROOT:
 		return clock_enable(CCGR_USDHC1, enable);
+	case IMX8MN_CLK_USDHC2_ROOT:
 	case IMX8MM_CLK_USDHC2_ROOT:
 		return clock_enable(CCGR_USDHC2, enable);
+	case IMX8MN_CLK_USDHC3_ROOT:
 	case IMX8MM_CLK_USDHC3_ROOT:
 		return clock_enable(CCGR_USDHC3, enable);
+	case IMX8MN_CLK_I2C1:
 	case IMX8MM_CLK_I2C1:
 		return clock_enable(CCGR_I2C1, enable);
+	case IMX8MN_CLK_I2C2:
 	case IMX8MM_CLK_I2C2:
 		return clock_enable(CCGR_I2C2, enable);
+	case IMX8MN_CLK_I2C3:
 	case IMX8MM_CLK_I2C3:
 		return clock_enable(CCGR_I2C3, enable);
+	case IMX8MN_CLK_I2C4:
 	case IMX8MM_CLK_I2C4:
 		return clock_enable(CCGR_I2C4, enable);
 	}
