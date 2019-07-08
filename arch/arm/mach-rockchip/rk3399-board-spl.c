@@ -23,9 +23,12 @@
 #include <power/regulator.h>
 #include <dm/pinctrl.h>
 
-void board_return_to_bootrom(void)
+int board_return_to_bootrom(struct spl_image_info *spl_image,
+			    struct spl_boot_device *bootdev)
 {
 	back_to_bootrom(BROM_BOOT_NEXTSTAGE);
+
+	return 0;
 }
 
 static const char * const boot_devices[BROM_LAST_BOOTSOURCE + 1] = {
