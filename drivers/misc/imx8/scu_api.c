@@ -119,6 +119,31 @@ int sc_pm_set_resource_power_mode(sc_ipc_t ipc, sc_rsrc_t resource,
 	return ret;
 }
 
+int sc_pm_get_resource_power_mode(sc_ipc_t ipc, sc_rsrc_t resource,
+				  sc_pm_power_mode_t *mode)
+{
+	struct udevice *dev = gd->arch.scu_dev;
+	struct sc_rpc_msg_s msg;
+	int size = sizeof(struct sc_rpc_msg_s);
+	int ret;
+
+	RPC_VER(&msg) = SC_RPC_VERSION;
+	RPC_SVC(&msg) = (u8)(SC_RPC_SVC_PM);
+	RPC_FUNC(&msg) = (u8)(PM_FUNC_GET_RESOURCE_POWER_MODE);
+	RPC_U16(&msg, 0U) = (u16)(resource);
+	RPC_SIZE(&msg) = 2U;
+
+	ret = misc_call(dev, SC_FALSE, &msg, size, &msg, size);
+	if (ret)
+		printf("%s: resource:%d: res:%d\n",
+		       __func__, resource, RPC_R8(&msg));
+
+	if (mode)
+		*mode = RPC_U8(&msg, 0U);
+
+	return ret;
+}
+
 /* PAD */
 int sc_pad_set(sc_ipc_t ipc, sc_pad_t pad, u32 val)
 {

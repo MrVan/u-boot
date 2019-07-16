@@ -58,6 +58,8 @@ static inline int sc_err_to_linux(sc_err_t err)
 /* PM API*/
 int sc_pm_set_resource_power_mode(sc_ipc_t ipc, sc_rsrc_t resource,
 				  sc_pm_power_mode_t mode);
+int sc_pm_get_resource_power_mode(sc_ipc_t ipc, sc_rsrc_t resource,
+				  sc_pm_power_mode_t *mode);
 int sc_pm_set_clock_rate(sc_ipc_t ipc, sc_rsrc_t resource, sc_pm_clk_t clk,
 			 sc_pm_clock_rate_t *rate);
 int sc_pm_get_clock_rate(sc_ipc_t ipc, sc_rsrc_t resource, sc_pm_clk_t clk,
