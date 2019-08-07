@@ -372,6 +372,25 @@ config FSL_ESPI
 	  access the SPI interface and SPI NOR flash on platforms embedding
 	  this Freescale eSPI IP core.
 
+config FSL_FSPI
+	bool "NXP FlexSPI driver"
+	help
+	  Enable the NXP FlexSPI (FSPI) driver. This driver can be
+	  used to access the SPI NOR flash on platforms embedding this
+	  NXP IP core.
+
+if FSL_FSPI
+config FSPI_QUAD_SUPPORT
+	bool "FlexSPI QUAD support"
+	help
+	  Enable Quad Read/write
+
+config FSPI_AHB
+	bool "FlexSPI AHB support"
+	help
+	  Enable AHB buffer read
+endif
+
 config FSL_QSPI
 	bool "Freescale QSPI driver"
 	imply SPI_FLASH_BAR
