@@ -403,7 +403,7 @@ void reset_cpu(ulong addr)
 
 void imx_tmu_arch_init(void *reg_base)
 {
-	if (is_imx8mm()) {
+	if (is_imx8mm() || is_imx8mn()) {
 		/* Load TCALIV and TASR from fuses */
 		struct ocotp_regs *ocotp =
 			(struct ocotp_regs *)OCOTP_BASE_ADDR;
