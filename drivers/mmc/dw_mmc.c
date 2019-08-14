@@ -117,10 +117,10 @@ static int dwmci_fifo_ready(struct dwmci_host *host, u32 bit, u32 *len)
 
 static unsigned int dwmci_get_timeout(struct mmc *mmc, const unsigned int size)
 {
-	unsigned int timeout;
+	u64 timeout;
 
-	timeout = size * 8 * 1000;	/* counting in bits and msec */
-	timeout *= 2;			/* wait twice as long */
+	timeout = (u64)size * 8 * 1000;	/* counting in bits and msec */
+	timeout *= 10;			/* wait 10 times as long */
 	timeout /= mmc->clock;
 	timeout /= mmc->bus_width;
 	timeout /= mmc->ddr_mode ? 2 : 1;
