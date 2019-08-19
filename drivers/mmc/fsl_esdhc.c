@@ -25,14 +25,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define ESDHC_IRQ_EN_BITS	(IRQSTATEN_CC | IRQSTATEN_TC | \
-				IRQSTATEN_DINT | IRQSTATEN_BWR | \
-				IRQSTATEN_BRR | IRQSTATEN_CINT | \
-				IRQSTATEN_CTOE | IRQSTATEN_CCE | \
-				IRQSTATEN_CEBE | IRQSTATEN_CIE | \
-				IRQSTATEN_DTOE | IRQSTATEN_DCE | \
-				IRQSTATEN_DEBE)
-
 struct fsl_esdhc {
 	uint    dsaddr;		/* SDMA system address register */
 	uint    blkattr;	/* Block attributes register */
@@ -651,55 +643,23 @@ static int esdhc_getcd_common(struct fsl_esdhc_priv *priv)
 	return timeout > 0;
 }
 
-static int esdhc_reset(struct fsl_esdhc *regs)
-{
-	ulong start;
-
-	/* reset the controller */
-	esdhc_setbits32(&regs->sysctl, SYSCTL_RSTA);
-
-	/* hardware clears the bit when it is done */
-	start = get_timer(0);
-	while ((esdhc_read32(&regs->sysctl) & SYSCTL_RSTA)) {
-		if (get_timer(start) > 100) {
-			printf("MMC/SD: Reset never completed.\n");
-			return -ETIMEDOUT;
-		}
-	}
-
-	return 0;
-}
-
 static const struct mmc_ops esdhc_ops;
 
-static int fsl_esdhc_init(struct fsl_esdhc_priv *priv,
-			  struct fsl_esdhc_plat *plat)
+static int fsl_esdhc_get_cfg(struct fsl_esdhc_priv *priv,
+			     struct fsl_esdhc_plat *plat)
 {
+	struct fsl_esdhc *regs = priv->esdhc_regs;
+	u32 caps, voltage_caps = 0;
 	struct mmc_config *cfg;
-	struct fsl_esdhc *regs;
-	u32 caps, voltage_caps;
-	int ret;
 
 	if (!priv)
 		return -EINVAL;
 
-	regs = priv->esdhc_regs;
-
-	/* First reset the eSDHC controller */
-	ret = esdhc_reset(regs);
-	if (ret)
-		return ret;
-
-	esdhc_setbits32(&regs->sysctl, SYSCTL_PEREN | SYSCTL_HCKEN |
-				       SYSCTL_IPGEN | SYSCTL_CKEN);
-
-	writel(ESDHC_IRQ_EN_BITS, &regs->irqstaten);
 	cfg = &plat->cfg;
 #ifndef CONFIG_DM_MMC
 	memset(cfg, '\0', sizeof(*cfg));
 #endif
 
-	voltage_caps = 0;
 	caps = esdhc_read32(&regs->hostcapblt);
 
 #ifdef CONFIG_SYS_FSL_ERRATUM_ESDHC135
@@ -737,17 +697,9 @@ static int fsl_esdhc_init(struct fsl_esdhc_priv *priv,
 	else if (priv->bus_width == 4)
 		cfg->host_caps = MMC_MODE_4BIT;
 
-	cfg->host_caps = MMC_MODE_4BIT | MMC_MODE_8BIT;
 #ifdef CONFIG_SYS_FSL_ESDHC_HAS_DDR_MODE
 	cfg->host_caps |= MMC_MODE_DDR_52MHz;
 #endif
-
-	if (priv->bus_width > 0) {
-		if (priv->bus_width < 8)
-			cfg->host_caps &= ~MMC_MODE_8BIT;
-		if (priv->bus_width < 4)
-			cfg->host_caps &= ~MMC_MODE_4BIT;
-	}
 
 	if (caps & HOSTCAPBLT2_HSS)
 		cfg->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
@@ -759,7 +711,6 @@ static int fsl_esdhc_init(struct fsl_esdhc_priv *priv,
 
 	cfg->f_min = 400000;
 	cfg->f_max = min(priv->sdhc_clk, (u32)200000000);
-
 	cfg->b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
 
 	return 0;
@@ -882,7 +833,10 @@ static int fsl_esdhc_cfg_to_priv(struct fsl_esdhc_cfg *cfg,
 		return -EINVAL;
 
 	priv->esdhc_regs = (struct fsl_esdhc *)(unsigned long)(cfg->esdhc_base);
-	priv->bus_width = cfg->max_bus_width;
+	if (cfg->max_bus_width)
+		priv->bus_width = cfg->max_bus_width;
+	else
+		priv->bus_width = 4;
 	priv->sdhc_clk = cfg->sdhc_clk;
 	priv->wp_enable  = cfg->wp_enable;
 
@@ -917,7 +871,7 @@ int fsl_esdhc_initialize(bd_t *bis, struct fsl_esdhc_cfg *cfg)
 		return ret;
 	}
 
-	ret = fsl_esdhc_init(priv, plat);
+	ret = fsl_esdhc_get_cfg(priv, plat);
 	if (ret) {
 		debug("%s init failure\n", __func__);
 		free(plat);
@@ -1012,9 +966,9 @@ static int fsl_esdhc_probe(struct udevice *dev)
 		}
 	}
 
-	ret = fsl_esdhc_init(priv, plat);
+	ret = fsl_esdhc_get_cfg(priv, plat);
 	if (ret) {
-		dev_err(dev, "fsl_esdhc_init failure\n");
+		dev_err(dev, "fsl_esdhc_get_cfg failure\n");
 		return ret;
 	}
 
