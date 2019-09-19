@@ -12,7 +12,7 @@
 #include "compiler.h"
 
 static uint32_t ap_start_addr, sld_start_addr, sld_src_off;
-static char *ap_img, *sld_img, *signed_hdmi;
+static char *ap_img, *sld_img, *signed_hdmi, sld_img_ivt[128];
 static imx_header_v3_t imx_header[2]; /* At most there are 3 IVT headers */
 static uint32_t rom_image_offset;
 static uint32_t sector_size = 0x200;
@@ -20,6 +20,8 @@ static uint32_t image_off;
 static uint32_t sld_header_off;
 static uint32_t ivt_offset;
 static uint32_t using_fit;
+static bool gen_fit_ivt;
+static int sld_img_ivt_ofd;
 
 #define ROM_V1 1 /* V1 ROM for i.MX8MQ/MM */
 #define ROM_V2 2 /* V2 ROM for iMX8MN */
@@ -74,6 +76,7 @@ static table_entry_t imx8mimage_cmds[] = {
 	{CMD_SIGNED_HDMI,       "SIGNED_HDMI",          "signed hdmi image",  },
 	{CMD_LOADER,            "LOADER",               "loader image",       },
 	{CMD_SECOND_LOADER,     "SECOND_LOADER",        "2nd loader image",   },
+	{CMD_SECOND_LOADER_IVT, "SECOND_LOADER_IVT",    "2nd loader image",   },
 	{CMD_DDR_FW,            "DDR_FW",               "ddr firmware",       },
 	{CMD_SOC_TYPE,          "SOC_TYPE",             "soc type",           },
 	{-1,                    "",                     "",	              },
@@ -111,6 +114,13 @@ static void parse_cfg_cmd(int32_t cmd, char *token, char *name, int lineno)
 	case CMD_SECOND_LOADER:
 		sld_img = token;
 		break;
+	case CMD_SECOND_LOADER_IVT:
+		sld_img = token;
+		gen_fit_ivt = true;
+		strcpy(sld_img_ivt, sld_img);
+		strcat(sld_img_ivt, "-ivt");
+		fprintf(stdout, "sld_img_ivt %s\n", sld_img_ivt);
+		break;
 	case CMD_SIGNED_HDMI:
 		signed_hdmi = token;
 		break;
@@ -147,6 +157,7 @@ static void parse_cfg_fld(int32_t *cmd, char *token,
 			ap_start_addr = get_cfg_value(token, name, lineno);
 			break;
 		case CMD_SECOND_LOADER:
+		case CMD_SECOND_LOADER_IVT:
 			sld_start_addr = get_cfg_value(token, name, lineno);
 			break;
 		}
@@ -154,6 +165,7 @@ static void parse_cfg_fld(int32_t *cmd, char *token,
 	case CFG_REG_VALUE:
 		switch (*cmd) {
 		case CMD_SECOND_LOADER:
+		case CMD_SECOND_LOADER_IVT:
 			sld_src_off = get_cfg_value(token, name, lineno);
 			break;
 		}
@@ -495,7 +507,7 @@ void build_image(int ofd)
 	file_off += CSF_SIZE;
 
 	/* Second boot loader image */
-	if (sld_img) {
+	if (sld_img && !gen_fit_ivt) {
 		if (!using_fit) {
 			fprintf(stderr, "Not support no fit\n");
 			exit(EXIT_FAILURE);
@@ -562,7 +574,7 @@ void build_image(int ofd)
 	csf_off -= ivt_offset;
 	fill_zero(ofd, CSF_SIZE, csf_off);
 
-	if (sld_img) {
+	if (sld_img && !gen_fit_ivt) {
 		sld_header_off -= ivt_offset;
 		ret = lseek(ofd, sld_header_off, SEEK_SET);
 		if (ret < 0) {
@@ -580,6 +592,30 @@ void build_image(int ofd)
 						     sld_start_addr,
 						     &sld_load_addr) + 0x20;
 		}
+	}
+
+	if (gen_fit_ivt) {
+		sld_img_ivt_ofd = open(sld_img_ivt,
+				       O_RDWR | O_CREAT | O_TRUNC | O_BINARY,
+				       0666);
+		if (sld_img_ivt_ofd < 0) {
+			fprintf(stderr, "Open %s failed\n", sld_img_ivt);
+			return;
+		}
+		copy_file(sld_img_ivt_ofd, sld_img, 0, sld_src_off, 0);
+		sld_csf_off = generate_ivt_for_fit(sld_img_ivt_ofd,
+						   sld_src_off,
+						   sld_start_addr,
+						   &sld_load_addr) + 0x20;
+		/* Close output file */
+		close(sld_img_ivt_ofd);
+
+		fprintf(stdout, "\nFIT IVT IMAGE:\n");
+		fprintf(stdout, " fit_csf_off \t\t0x%x\n",
+			sld_csf_off);
+		fprintf(stdout, " fit hab block: \t0x%x 0x%x 0x%x\n",
+			sld_load_addr, sld_src_off,
+			sld_csf_off - sld_src_off);
 	}
 
 	if (!signed_hdmi)

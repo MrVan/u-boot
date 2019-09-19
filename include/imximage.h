@@ -80,6 +80,7 @@ enum imximage_cmd {
 	CMD_SECOND_LOADER,
 	CMD_DDR_FW,
 	CMD_SOC_TYPE,
+	CMD_SECOND_LOADER_IVT,
 };
 
 enum imximage_fld_types {
