@@ -21,6 +21,10 @@ static uint32_t sld_header_off;
 static uint32_t ivt_offset;
 static uint32_t using_fit;
 
+#define ROM_V1 1 /* V1 ROM for i.MX8MQ/MM */
+#define ROM_V2 2 /* V2 ROM for iMX8MN */
+static uint32_t version = ROM_V1;
+
 #define CSF_SIZE 0x2000
 #define HDMI_IVT_ID 0
 #define IMAGE_IVT_ID 1
@@ -71,6 +75,7 @@ static table_entry_t imx8mimage_cmds[] = {
 	{CMD_LOADER,            "LOADER",               "loader image",       },
 	{CMD_SECOND_LOADER,     "SECOND_LOADER",        "2nd loader image",   },
 	{CMD_DDR_FW,            "DDR_FW",               "ddr firmware",       },
+	{CMD_SOC_TYPE,          "SOC_TYPE",             "soc type",           },
 	{-1,                    "",                     "",	              },
 };
 
@@ -90,6 +95,15 @@ static void parse_cfg_cmd(int32_t cmd, char *token, char *name, int lineno)
 						token);
 		if (!strncmp(token, "sd", 2))
 			rom_image_offset = 0x8000;
+		if (version == ROM_V2) {
+			ivt_offset = 0;
+			if (!strncmp(token, "fspi", 4))
+				rom_image_offset = 0x1000;
+		}
+		break;
+	case CMD_SOC_TYPE:
+		if (!strncmp(token, "IMX8MN", 6))
+			version = ROM_V2;
 		break;
 	case CMD_LOADER:
 		ap_img = token;
@@ -491,8 +505,10 @@ void build_image(int ofd)
 			 * Record the second bootloader relative offset in
 			 * image's IVT reserved1
 			 */
-			imx_header[IMAGE_IVT_ID].fhdr.reserved1 =
-				sld_header_off - header_image_off;
+			if (version == ROM_V1) {
+				imx_header[IMAGE_IVT_ID].fhdr.reserved1 =
+					sld_header_off - header_image_off;
+			}
 			sld_fd = open(sld_img, O_RDONLY | O_BINARY);
 			if (sld_fd < 0) {
 				fprintf(stderr, "%s: Can't open: %s\n",
