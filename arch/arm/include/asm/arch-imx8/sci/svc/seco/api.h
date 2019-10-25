@@ -17,6 +17,7 @@
 #define SC_SECO_AUTH_SECO_FW            3U   /* SECO Firmware */
 #define SC_SECO_AUTH_HDMI_TX_FW         4U   /* HDMI TX Firmware */
 #define SC_SECO_AUTH_HDMI_RX_FW         5U   /* HDMI RX Firmware */
+#define SC_SECO_EVERIFY_IMAGE           6U   /* Enhanced verify image */
 
 #define SC_SECO_RNG_STAT_UNAVAILABLE    0U  /* Unable to initialize the RNG */
 #define SC_SECO_RNG_STAT_INPROGRESS     1U  /* Initialization is on-going */
