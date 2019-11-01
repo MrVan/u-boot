@@ -111,4 +111,4 @@ config DDRMC_VF610_CALIBRATION
 
 config SPL_IMX_ROMAPI_LOADADDR
 	hex "Default load address to load image through ROM API"
-	depends on SPL_BOOTROM_SUPPORT
+	depends on IMX8MN
