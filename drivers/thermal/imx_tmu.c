@@ -187,6 +187,11 @@ static int imx_tmu_calibration(struct udevice *dev)
 	return 0;
 }
 
+void __weak imx_tmu_arch_init(void *reg_base)
+{
+	return;
+}
+
 static void imx_tmu_init(struct udevice *dev)
 {
 	struct imx_tmu_plat *pdata = dev_get_platdata(dev);
@@ -210,6 +215,8 @@ static void imx_tmu_init(struct udevice *dev)
 		/* Set update_interval */
 		writel(TMTMIR_DEFAULT, &pdata->regs->regs_v1.tmtmir);
 	}
+
+	imx_tmu_arch_init((void *)pdata->regs);
 }
 
 static int imx_tmu_enable_msite(struct udevice *dev)
