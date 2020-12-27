@@ -18,7 +18,7 @@ Get and Build the ARM Trusted firmware
 
 Note: srctree is U-Boot source directory
 Get ATF from: https://source.codeaurora.org/external/imx/imx-atf
-branch: imx_4.19.35_1.1.0
+branch: imx_5.4.70_2.3.0
 
 .. code-block:: bash
 
@@ -30,10 +30,20 @@ Get the ddr firmware
 
 .. code-block:: bash
 
-   $ wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.5.bin
-   $ chmod +x firmware-imx-8.5.bin
-   $ ./firmware-imx-8.5
+   $ wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.9.bin
+   $ chmod +x firmware-imx-8.9.bin
+   $ ./firmware-imx-8.9
+
+Choose ddr4 or lpddr4 firmware, do not copy both.
+If your board is imx8mn_ddr4_evk board, use below:
+
+.. code-block:: bash
    $ cp firmware-imx-8.5/firmware/ddr/synopsys/ddr4*.bin $(srctree)
+
+
+If your board is imx8mn_ddr4_evk board, use below:
+.. code-block:: bash
+   $ cp firmware-imx-8.5/firmware/ddr/synopsys/lpddr4*.bin $(srctree)
 
 Build U-Boot
 ------------
@@ -41,7 +51,7 @@ Build U-Boot
 .. code-block:: bash
 
    $ export CROSS_COMPILE=aarch64-poky-linux-
-   $ make imx8mn_ddr4_evk_defconfig
+   $ make imx8mn_ddr4_evk_defconfig or imx8mn_evk_defconfig
    $ export ATF_LOAD_ADDR=0x960000
    $ make flash.bin
 
